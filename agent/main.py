@@ -88,9 +88,11 @@ def search_tables(description: str):
     return json.dumps(table_ids, indent=2)
 
 
-def get_table_details(dataset: str, table: str):
+def get_table_schema(dataset: str, table: str):
     """Get the schema for a BigQuery table."""
-    return json.dumps(bq_client.get_table(f"{dataset}.{table}").to_api_repr(), indent=2)
+    return json.dumps(
+        bq_client.get_table(f"{dataset}.{table}").to_api_repr()["schema"], indent=2
+    )
 
 
 def run_sql(query: str):
@@ -114,7 +116,7 @@ def python(src: str):
         return output.getvalue()
 
 
-functions = [search_tables, get_table_details, run_sql, python]
+functions = [search_tables, get_table_schema, run_sql, python]
 tools = [
     {
         "type": "function",
@@ -176,7 +178,10 @@ def execute_tool(tool_call):
         return f"Error: failed to call function `{name}`: {e}"
 
 
-def call_assistant():
+def call_assistant(depth_limit: int):
+    if depth_limit <= 0:
+        return
+
     result = llm.create_chat_completion(
         messages=messages,
         tools=tools,
@@ -197,7 +202,7 @@ def call_assistant():
             ]
             messages.extend(tool_messages)
             print(formatter(tool_messages).prompt)
-            call_assistant()
+            call_assistant(depth_limit - 1)
         else:
             print(formatter([assistant_message]).prompt)
 
@@ -215,7 +220,7 @@ while True:
 
     messages.append({"role": "user", "content": user_input})
     try:
-        call_assistant()
+        call_assistant(10)
     except KeyboardInterrupt:
         logging.warning(
             f"Assistant received keyboard interrupt. Awaiting further instructions."
