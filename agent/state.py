@@ -10,6 +10,7 @@ from llama_cpp import Llama
 @attrs.define
 class Node:
     stmt: ast.stmt = attrs.field()
+    src: str | None = attrs.field(default=None)
     value: Any = attrs.field(default=None)
     exc: Exception | None = attrs.field(default=None)
     stdout: str = attrs.field(default="")

@@ -1,11 +1,25 @@
 import ast
 import contextlib
 import io
+from collections.abc import Mapping
+from typing import Any, Protocol
 
-from agent.state import Node, State
+import attrs
+
+from agent.state import Node
 
 
-def execute(state: State, node: Node):
+class Context(Protocol):
+    globals: dict[str, Any]
+    locals: Mapping[str, Any]
+
+    @classmethod
+    def empty(cls):
+        tmp = attrs.make_class("Context", ["globals", "locals"])
+        return tmp(globals={}, locals={})
+
+
+def execute(ctx: Context, node: Node):
     stdout = io.StringIO()
     stderr = io.StringIO()
     stmt = node.stmt
@@ -14,9 +28,9 @@ def execute(state: State, node: Node):
         with contextlib.redirect_stderr(stderr):
             try:
                 if isinstance(stmt, ast.Expr):
-                    node.value = eval_expr(state, stmt.value)
+                    node.value = eval_expr(ctx, stmt.value)
                 else:
-                    node.value = exec_stmt(state, stmt)
+                    node.value = exec_stmt(ctx, stmt)
             except Exception as e:
                 node.exc = e
             finally:
@@ -24,9 +38,9 @@ def execute(state: State, node: Node):
                 node.stderr = stderr.getvalue()
 
 
-def exec_stmt(state: State, stmt: ast.stmt):
-    exec(ast.unparse(stmt), state.globals, state.locals)
+def exec_stmt(ctx: Context, stmt: ast.stmt):
+    exec(ast.unparse(stmt), ctx.globals, ctx.locals)
 
 
-def eval_expr(state: State, expr: ast.expr):
-    return eval(ast.unparse(expr), state.globals, state.locals)
+def eval_expr(ctx: Context, expr: ast.expr):
+    return eval(ast.unparse(expr), ctx.globals, ctx.locals)

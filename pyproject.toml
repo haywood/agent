@@ -6,9 +6,17 @@ authors = ["Michael Reed <1062477+haywood@users.noreply.github.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12,<3.13"
 attrs = "^23.2.0"
 llama-cpp-python = "^0.2.60"
+transformers = "^4.39.3"
+sentencepiece = "^0.2.0"
+pandas = "^2.2.1"
+matplotlib = "^3.8.4"
+folium = "^0.16.0"
+basemap = "^1.4.1"
+google-cloud-bigquery = "^3.20.1"
+google-cloud-datacatalog = "^3.19.0"
 
 
 [build-system]
