@@ -17,6 +17,9 @@ folium = "^0.16.0"
 basemap = "^1.4.1"
 google-cloud-bigquery = "^3.20.1"
 google-cloud-datacatalog = "^3.19.0"
+chatlab = "^2.1.1"
+torch = "^2.2.2"
+db-dtypes = "^1.2.0"
 
 
 [build-system]
