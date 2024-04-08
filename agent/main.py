@@ -1,5 +1,8 @@
 import argparse
+import code
+import contextlib
 import inspect
+import io
 import itertools
 import json
 import logging
@@ -92,10 +95,26 @@ def get_table_details(dataset: str, table: str):
 
 def run_sql(query: str):
     """Run a query using BigQuery."""
-    return bq_client.query_and_wait(query).to_dataframe().to_string(index=False)
+    return "\n" + bq_client.query_and_wait(query).to_dataframe().to_string(index=False)
 
 
-functions = [search_tables, get_table_details, run_sql]
+repl = code.InteractiveInterpreter()
+
+
+def python(src: str):
+    """Run Python code in an interactive REPL."""
+    logging.debug("Preparing to execute Python source:\n%s", src)
+    output = io.StringIO()
+    with contextlib.redirect_stdout(output):
+        with contextlib.redirect_stderr(output):
+            result = repl.runsource(src, symbol="exec")
+    if result:
+        return "Error: incomplete Python input"
+    else:
+        return output.getvalue()
+
+
+functions = [search_tables, get_table_details, run_sql, python]
 tools = [
     {
         "type": "function",
